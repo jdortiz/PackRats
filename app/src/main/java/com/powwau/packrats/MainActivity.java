@@ -1,5 +1,6 @@
 package com.powwau.packrats;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -11,6 +12,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+
+import java.sql.SQLException;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -56,8 +62,16 @@ public class MainActivity extends ActionBarActivity {
 
         private EditText mEditTextTitle;
         private EditText mEditTextContents;
+        private DatabaseHelper mDBHelper = null;
 
         public PlaceholderFragment() {
+        }
+
+        private DatabaseHelper getDBHelper() {
+            if (mDBHelper == null) {
+                mDBHelper = OpenHelperManager.getHelper(getActivity(), DatabaseHelper.class);
+            }
+            return mDBHelper;
         }
 
         @Override
@@ -70,12 +84,22 @@ public class MainActivity extends ActionBarActivity {
         }
 
         private void prepareButton(View rootView) {
+            final String FILENAME = "document";
             Button mButtonSave = (Button)rootView.findViewById(R.id.button_save);
             mButtonSave.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Document document = createDocumentFromData();
-                    Toast.makeText(getActivity(), document.toString(), Toast.LENGTH_LONG).show();
+                    saveDocument(document);
+                }
+
+                private void saveDocument(Document document) {
+                    try {
+                        Dao<Document,Integer> dao = getDBHelper().getDocumentDao();
+                        dao.create(document);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 private Document createDocumentFromData() {
@@ -90,6 +114,15 @@ public class MainActivity extends ActionBarActivity {
         private void wireUpViews(View rootView) {
             mEditTextTitle = (EditText)rootView.findViewById(R.id.edit_text_title);
             mEditTextContents = (EditText)rootView.findViewById(R.id.edit_text_contents);
+        }
+
+        @Override
+        public void onDestroy() {
+            if (mDBHelper != null) {
+                OpenHelperManager.releaseHelper();
+                mDBHelper = null;
+            }
+            super.onDestroy();
         }
     }
 }
