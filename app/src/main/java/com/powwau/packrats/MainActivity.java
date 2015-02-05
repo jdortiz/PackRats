@@ -1,7 +1,6 @@
 package com.powwau.packrats;
 
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,7 +8,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -53,6 +54,9 @@ public class MainActivity extends ActionBarActivity {
      */
     public static class PlaceholderFragment extends Fragment {
 
+        private EditText mEditTextTitle;
+        private EditText mEditTextContents;
+
         public PlaceholderFragment() {
         }
 
@@ -60,7 +64,32 @@ public class MainActivity extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            wireUpViews(rootView);
+            prepareButton(rootView);
             return rootView;
+        }
+
+        private void prepareButton(View rootView) {
+            Button mButtonSave = (Button)rootView.findViewById(R.id.button_save);
+            mButtonSave.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Document document = createDocumentFromData();
+                    Toast.makeText(getActivity(), document.toString(), Toast.LENGTH_LONG).show();
+                }
+
+                private Document createDocumentFromData() {
+                    Document document = new Document();
+                    document.setTitle(mEditTextTitle.getText().toString());
+                    document.setContents((mEditTextContents.getText().toString()));
+                    return document;
+                }
+            });
+        }
+
+        private void wireUpViews(View rootView) {
+            mEditTextTitle = (EditText)rootView.findViewById(R.id.edit_text_title);
+            mEditTextContents = (EditText)rootView.findViewById(R.id.edit_text_contents);
         }
     }
 }
